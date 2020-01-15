@@ -1,6 +1,7 @@
 //Import users database schema
 const User =  require('../models/userModel');
 
+//Let super admin get all users (PROTECTED)
 getAllUsers = (req, res) => {
 	User.find().select('firstname lastname username email age regDate regTime isLearner  isInstructor _id').then(
         docs => {
@@ -33,6 +34,8 @@ getAllUsers = (req, res) => {
         })
     });
 }
+
+//Let super admin delete a specific user (PROTECTED)
 deleteOneUser = (req, res) => {
 	const uID = req.params.userId;
     User.deleteOne({_id: uID})

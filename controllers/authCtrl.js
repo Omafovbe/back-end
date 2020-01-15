@@ -10,6 +10,7 @@ const jwt = require("jsonwebtoken");
 //Import users database schema
 const User =  require('../models/userModel');
 
+//Handle signup without auth for all users
 signup = (req, res) => {
 	var hash = bcrypt.hashSync(req.body.password, 10);
     const userData = new User({
@@ -42,6 +43,7 @@ signup = (req, res) => {
     }
 };
 
+//Handle login and and generate token to be stored to the client and send back for verification when requesting for a protected route api
 login = (req, res) => {
 	console.log(req.body)
 	let email = req.body.email
@@ -83,6 +85,7 @@ login = (req, res) => {
         })
 }
 
+//Handle displaying of data of a single user based on their id (PROTECTED)
 me = (req, res) => {
 	const uID = req.params.userId;
     User.findById(uID).select('firstname lastname username email age regDate regTime isLearner  isInstructor _id').then(
