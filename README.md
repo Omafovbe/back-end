@@ -26,4 +26,4 @@ User id will be return with message when registerd, o that will be bind with thi
 **http://localhost:4000/superAdmin/deleteuser/userId**
 Delete one specific user base on id also protected eoth token (Acess control of who should perform operation isnt implemented to)
 
-# DATA SENT MUST BE IN FORM OF JSON DATATYPE!
+DATA SENT MUST BE IN FORM OF JSON DATATYPE!
