@@ -10,7 +10,7 @@ module.exports = (req, res, next) => {
 		});
 	} else {
 		//Collect token from the request headers Authorization bearer and split to get only the token 
-		const token = req.headers.authorization.split(" ")[1];
+		const token = req.headers.authorization.split(' ')[1];
 
 		//Verify collected token and decode to get all hidden info in it
 		try {
@@ -21,7 +21,7 @@ module.exports = (req, res, next) => {
 			//Return error if it dosent get token or token is expired and other...
 			return res.status(401).json({
 				error,
-				message: "Auth failed"
+				message: "Authentication failed"
 			});
 		};
 	};

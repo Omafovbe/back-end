@@ -1,5 +1,5 @@
 //Import bcrypt to hash password
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 //Import validator to valid incoming email address
 const validator = require("email-validator");
@@ -12,6 +12,13 @@ const User =  require('../models/userModel');
 
 //Handle signup without auth for all users
 signup = (req, res) => {
+    //If email already exist do not create account
+    if (User.findOne({ email: req.body.email })) {
+        res.status(400).json({
+            message: 'Email already exist'
+        })
+    }
+
 	var hash = bcrypt.hashSync(req.body.password, 10);
     const userData = new User({
         firstname: req.body.firstname,
@@ -21,6 +28,7 @@ signup = (req, res) => {
         email: req.body.email,
         password: hash,
     });
+
     if(validator.validate(req.body.email)){
         userData.save().then(
         saved => {
@@ -48,41 +56,38 @@ login = (req, res) => {
 	console.log(req.body)
 	let email = req.body.email
     let pswd = req.body.password
-    User.find({ email: email })
-        .then(user => {
-            if(user.length < 1){
-                res.status(401).json({
-                    message: "Auth failed"
-                })
-            }else{
-                var compareHash = bcrypt.compareSync(pswd, user[0].password);
-                if(compareHash){
-                    const token = jwt.sign({
-                        _id: user[0]._id,
-                        username: user[0].username,
-                        regDate: user[0].regDate,
-                        regTime: user[0].regTime, 
-                    }, 
+    User.findOne({ email: email }).then( user => { 
+        console.log(user._id) 
+
+        if (user) {
+            var compareHash = bcrypt.compareSync(pswd, user.password);
+            if (compareHash) {
+                const token = jwt.sign({
+                    _id: user._id,
+                    username: user.username,
+                    regDate: user.regDate,
+                    regTime: user.regTime,
+                },
                     process.env.JWT_SECRET,
                     {
-                        expiresIn: "1h"   
-                    },)
-                    res.status(200).json({
-                        message: "Auth successful",
-                        token: token
+                        expiresIn: "1h"
                     })
-                } else {
-                    res.status(401).json({
-                        message: "Auth failed"
-                    })
-                }
+                const { password, ...userWithoutPassword } = user.toObject()
+                
+                res.status(200).json({
+                    message: 'Authentication successful',
+                    user: userWithoutPassword,
+                    token: token
+                })
             }
+        }
+        
+    }).catch( err => {
+        res.status(500).json({
+            message: 'An error occured'
         })
-        .catch(err => {
-            res.status(500).json({
-                err,
-            })
-        })
+    })
+    
 }
 
 //Handle displaying of data of a single user based on their id (PROTECTED)
