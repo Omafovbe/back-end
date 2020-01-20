@@ -10,6 +10,9 @@ const AuthController = require('../controllers/authCtrl')
 //Import check-auth middleware
 const checkAuth = require('../middleware/check-auth')
 
+//This root route handle the submision of forgot password data to the database
+router.post('/forgotpassword', AuthController.forgot);
+
 //This root route handle the submision of incoming registration data to the database
 router.post('/signup', AuthController.signup);
 
