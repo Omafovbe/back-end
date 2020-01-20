@@ -111,8 +111,65 @@ me = (req, res) => {
     })
 }
 
+verifyToken = (req, res) => {
+    //Get the token from the request header
+    const { token } = req.params
+
+    //Decode the token
+    const payload = jwt.decode(token, process.env.JWT_SECRET)
+
+    //extract user ID from jwt payload and search for the user
+    User.findOne({_id: payload._id})
+        .then(
+            user => {
+
+                //if user is found, redirect user to a page to change paasword
+                if (user) {
+                    res.status(200).json({
+                        message: 'Token Verified',
+                        request: {
+                            type: 'GET',
+                            url: `http://${req.headers.host}/resetpassword/${user._id}`
+                        }
+                    })
+                } 
+                //if not the user was not found
+                else {
+                    res.status(406).json({
+                        message: 'Invalid Token'
+                    })
+                }
+            }
+        )
+        .catch( err => {
+            //If a problem persist from validating the token display the error
+            console.log(err)
+            res.status(400).json({
+                err,
+            })
+        })
+}
+
+changePassword = (req, res) => {
+    const { userId } = req.params
+    const { newPassword } = req.body
+
+    User.findOne({_id: userId})
+        .then( user => {
+            let hash = bcrypt.hashSync(newPassword, 10)
+            User.findOneAndUpdate({_id: userId}, {password: hash})
+            .then(() => res.status(200).json({message: 'Password change Successful'}))
+            .catch( err => res.status(500).json(err))
+        })
+        .catch(() => {
+            res.status(404).json({message: 'Invalid User'})
+        })
+}
+
 module.exports = {
 	signup,
 	login,
-	me,
+    me,
+    verifyToken,
+    changePassword
 }
