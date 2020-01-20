@@ -8,12 +8,10 @@ require('dotenv').config()
 mongoose.Promise = global.Promise
 
 //Here is the connection to the mongodb that's located locally
-//const DBURL = process.env.MONGODB_URL;
-const DBURL = "mongodb://127.0.0.1:27017/fleskAIDB"
+const DBURL = process.env.MONGO_URL;
 
 //Remote mongodb connection "either of both can be use"
-
- //const DBURL = 'mongodb+srv://fleskaidbadmin:0iMqwb6p973aCAve@cluster0-oomfi.azure.mongodb.net/test?retryWrites=true&w=majority'
+const MLABDBURL = process.env.MLAB_URL;
 
 //Mongo connection code
 mongoose.connect(DBURL, { useNewUrlParser: true, useCreateIndex:true, useUnifiedTopology: true})
