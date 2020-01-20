@@ -1,5 +1,5 @@
 //Import bcrypt to hash password
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 //Import validator to valid incoming email address
 const validator = require("email-validator");
@@ -7,11 +7,26 @@ const validator = require("email-validator");
 //Import jsonwebtoken to generate token when user login for authentication
 const jwt = require("jsonwebtoken");
 
+//Import nodemailer to email user
+const nodemailer =  require('nodemailer');
+
 //Import users database schema
 const User =  require('../models/userModel');
 
+//Import users database schema
+const Forgot =  require('../models/forgotModel');
+
+
 //Handle signup without auth for all users
 signup = (req, res) => {
+    //If email already exist do not create account
+    console.log(req.body.email);
+    if (User.findOne({ email: req.body.email })) {
+        res.status(400).json({
+            message: 'Email already exist'
+        })
+    }
+
 	var hash = bcrypt.hashSync(req.body.password, 10);
     const userData = new User({
         firstname: req.body.firstname,
@@ -21,6 +36,7 @@ signup = (req, res) => {
         email: req.body.email,
         password: hash,
     });
+
     if(validator.validate(req.body.email)){
         userData.save().then(
         saved => {
@@ -48,46 +64,108 @@ login = (req, res) => {
 	console.log(req.body)
 	let email = req.body.email
     let pswd = req.body.password
-    User.find({ email: email })
-        .then(user => {
-            if(user.length < 1){
-                res.status(401).json({
-                    message: "Auth failed"
-                })
-            }else{
-                var compareHash = bcrypt.compareSync(pswd, user[0].password);
-                if(compareHash){
-                    const token = jwt.sign({
-                        _id: user[0]._id,
-                        username: user[0].username,
-                        regDate: user[0].regDate,
-                        regTime: user[0].regTime, 
-                    }, 
+    User.findOne({ email: email }).then( user => { 
+        console.log(user._id) 
+
+        if (user) {
+            var compareHash = bcrypt.compareSync(pswd, user.password);
+            if (compareHash) {
+                const token = jwt.sign({
+                    _id: user._id,
+                    username: user.username,
+                    regDate: user.regDate,
+                    regTime: user.regTime,
+                },
                     process.env.JWT_SECRET,
                     {
-                        expiresIn: "1h"   
-                    },)
-                    res.status(200).json({
-                        message: "Auth successful",
-                        token: token
+                        expiresIn: "1h"
                     })
-                } else {
-                    res.status(401).json({
-                        message: "Auth failed"
-                    })
-                }
+                const { password, ...userWithoutPassword } = user.toObject()
+                
+                res.status(200).json({
+                    message: 'Authentication successful',
+                    user: userWithoutPassword,
+                    token: token
+                })
             }
+        }
+        
+    }).catch( err => {
+        res.status(500).json({
+            message: 'An error occured'
         })
-        .catch(err => {
+    })
+    
+}
+
+//Handles forgot password and generate token to be stored to forgot password database
+forgot = (req, res) => {
+	//console.log(req.body)
+    let email = req.body.email
+    User.findOne({ email: email }).then(user => { 
+        
+        if (!user) {
             res.status(500).json({
-                err,
+                message: 'User not found'
             })
+        }
+        else{           
+            const token = jwt.sign({
+            _id: user._id,
+        },
+        process.env.JWT_SECRET,//
+            {
+                expiresIn: "1h"
+            });
+
+        const ResetData = new Forgot({
+            email: email,
+            resetPasswordToken: token,
+            resetPasswordExpires: Date.now() + 3600000, //1 hour
+        });
+
+        ResetData.save().then(
+            saved => {
+                //console.log(user.email);
+                //console.log(token);
+                var smtpTransport = nodemailer.createTransport({
+                    service: 'Gmail', 
+                    auth: {
+                        //allow less secured app settings must be selected for this gmail account
+                      user: 'flesktechnology@gmail.com',
+                      pass: process.env.GMAILPW,
+                    }
+                  });
+                  var mailOptions = {
+                    to: user.email,
+                    from: 'flesktechnology@gmail.com',
+                    subject: 'Account Password Reset',
+                    text: 'You are receiving this because there was a request to reset the password for your account.\n\n' +
+                      'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
+                      'http://' + req.headers.host + '/reset/' + token + '\n\n' +
+                      'If you did not make a password reset request, please ignore this email. Thanks.\n'
+                  };
+                  smtpTransport.sendMail(mailOptions, function(err) {
+                    res.status(200).json({
+                        message: 'Email sent',
+                    })
+                  });
+                
+    }).catch( err => {
+        res.status(500).json({
+            message: 'An error occured'
         })
+    });
+    }
+})
+
 }
 
 //Handle displaying of data of a single user based on their id (PROTECTED)
 me = (req, res) => {
-	const uID = req.params.userId;
+    
+    const uID = req.params.userId;
+    console.log(uID);
     User.findById(uID).select('firstname lastname username email age regDate regTime isLearner  isInstructor _id').then(
         result => {
         res.status(200).json({
@@ -109,5 +187,6 @@ me = (req, res) => {
 module.exports = {
 	signup,
 	login,
-	me,
+    me,
+    forgot,
 }
