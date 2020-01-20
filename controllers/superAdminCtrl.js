@@ -36,7 +36,7 @@ getAllUsers = (req, res) => {
         });
     } else {
         res.status(500).json({
-            message: "Permission denied"
+            message: "Permission denied!"
         })
     }
 }
@@ -107,7 +107,20 @@ deleteOneUser = (req, res) => {
         })
     }
 }
+
+//Let Super Admin register staffs
+registerStaff = (req, res) => {
+
+}
+
+//let Super Admin and the authorized staff accept instructors
+acceptInstructors = (req, res) => {
+
+} 
+
 module.exports = {
 	getAllUsers,
 	deleteOneUser,
+    registerStaff,
+    acceptInstructors,
 }

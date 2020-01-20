@@ -1,6 +1,9 @@
 //Import express web framework for node.js
 const mongoose = require('mongoose')
 
+//Import bcrypt to hash password
+const bcrypt = require('bcryptjs');
+
 //Import the databse connection module
 const dbCon = require('./dbcon/dbcon')
 
@@ -13,9 +16,16 @@ const CourseCat =  require('./models/courseCategoryModel');
 //Import users database schema
 const User =  require('./models/userModel');
 
-const SuperAdmin = [
+const superAdmin = [
 	{
-		
+		firstname: "Super",
+		lastname: "Admin",
+		username: "supadmin",
+		age: "25",
+		email: "superadmin@flesktechnology.com",
+		password: bcrypt.hashSync("flesksuperadmin", 10),
+		isInstructor: true,
+		isSuperAdmin: true,
 	}
 ]
 
@@ -92,5 +102,17 @@ function seedCoursecats() {
 	console.log('Seeding successful')
 }
 
+function seedSuperAdmin() {
+	console.log('Seeding csuper admin details into db');
+	superAdmin.map(data => {
+	  	// Initialize a model with staff data
+	  	const sup = new User(data);
+	  	// and save it into the database
+	  	sup.save();
+	});	
+	console.log('Seeding successful')
+}
+
 seedStaffs();
 seedCoursecats();
+seedSuperAdmin();

@@ -19,6 +19,9 @@ router.post('/login',AuthController.login);
 //Handle get request for a single user based on their specific ID (PROTECTED)
 router.get('/me/:userId', checkAuth, AuthController.me);
 
+//Handle resetting of the log in user and (PROTECTED) based on the logged in user to be able to access it
+router.get('/changePassword', checkAuth, AuthController.changePassword);
+
 
 //Export the module for use in other modules
 module.exports = router

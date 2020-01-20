@@ -67,7 +67,7 @@ signup = (req, res) => {
 };
 
 //Handle login and and generate token to be stored to the client and send back for verification when requesting for a protected route api
-login = (req, res) => {
+login = (req, res, next) => {
 	let email = req.body.email
     let pswd = req.body.password
     User.findOne({ email: email }).then( user => { 
@@ -96,14 +96,21 @@ login = (req, res) => {
                     user: userWithoutPassword,
                     token: token
                 })
+            } else{
+                res.status(401).json({
+                    message: "Auth failed"
+                })
             }
+        } else{
+            res.status(401).json({
+                message: "Auth failed"
+            })
         }
-        
-    }).catch( err => {
-        res.status(500).json({
-            message: 'An error occured'
+         }).catch( err => {
+            res.status(500).json({
+                message: 'An error occured'
+            })
         })
-    })
     
 }
 
@@ -128,6 +135,24 @@ me = (req, res) => {
     })
 }
 
+//Handling resetting of the password of the logged in user by checking the id of the user through the token 
+//sent by the request header in which also pass through the check-auth middleware before coming here.
+changePassword = (req, res) => {
+    const userId = req.authData._id;
+    const { newPassword } = req.body.newPassword
+
+    User.findOne({_id: userId})
+        .then( user => {
+            let hash = bcrypt.hashSync(newPassword, 10)
+            User.findOneAndUpdate({_id: userId}, {password: hash})
+            .then(() => res.status(200).json({message: 'Password change Successful'}))
+            .catch( err => res.status(500).json(err))
+        })
+        .catch(() => {
+            res.status(401).json({message: 'Unauthorized access'})
+        })
+}
+
 //Handle profile updating of each user
 
 updateProfle = (req, res) => {
@@ -143,4 +168,5 @@ module.exports = {
 	login,
 	me,
     updateProfle,
+    changePassword,
 }
