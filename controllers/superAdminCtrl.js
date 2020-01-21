@@ -3,7 +3,8 @@ const User =  require('../models/userModel');
 
 //Let super admin get all users (PROTECTED)
 getAllUsers = (req, res) => {
-	User.find().select('firstname lastname username email age regDate regTime isLearner  isInstructor _id').then(
+    if(req.authData.isSuperAdmin){
+        User.find().select('firstname lastname username email age regDate regTime isLearner isInstructor isSuperAdmin staffLevelStatus _id').then(
         docs => {
             const response = {
                 count: docs.length,
@@ -27,19 +28,52 @@ getAllUsers = (req, res) => {
                 })
             }
         res.status(200).json(response)
-    })
-    .catch(error => {
-        res.status(500).json({
-            error,
         })
-    });
+        .catch(error => {
+            res.status(500).json({
+                error,
+            })
+        });
+    } else {
+        res.status(500).json({
+            message: "Permission denied!"
+        })
+    }
+}
+
+//Get one user details to b viewed by the super admin
+getOneUser = (req, res) => {
+    if(req.authData.isSuperAdmin){
+    const uID = req.params.userId;
+        User.findById(uID).select('firstname lastname username email age regDate regTime isLearner isInstructor isSuperAdmin staffLevelStatus _id').then(
+            result => {
+            res.status(200).json({
+                result: result,
+                request: {
+                    type: "GET",
+                    url: 'http://'+req.headers.host+'/users'
+                }
+            })
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(400).json({
+                err,
+            })
+        })
+    } else {
+        res.status(500).json({
+            message: "Permission denied"
+        })
+    }
 }
 
 //Let super admin delete a specific user (PROTECTED)
 deleteOneUser = (req, res) => {
-	const uID = req.params.userId;
-    User.deleteOne({_id: uID})
-        .then( result => {
+    console.log(req.authData)
+    if(req.authData.isSuperAdmin){
+        const uID = req.params.userId;
+        User.deleteOne({_id: uID}).then( result => {
             if(result.deletedCount > 0){
                 res.status(200).json({
                     message: "User deleted",
@@ -67,8 +101,31 @@ deleteOneUser = (req, res) => {
                 err,
             })
         })
+    } else {
+        res.status(500).json({
+            message: "Permission denied"
+        })
+    }
 }
+
+//Let Super Admin register staffs
+registerStaff = (req, res) => {
+
+}
+
+//let Super Admin and the authorized staff accept instructors
+acceptInstructors = (req, res) => {
+
+} 
+//let super admin suspend active user/staff
+suspendOneUser = (req, res) => {
+
+}
+
 module.exports = {
 	getAllUsers,
+    getOneUser,
 	deleteOneUser,
+    registerStaff,
+    acceptInstructors,
 }

@@ -21,6 +21,9 @@ const learnerRoutes = require('./api/learners-routes')
 //Import the routes module for Super Admin
 const superAdminRoutes = require('./api/superAdmin-routes')
 
+//Import the routes module for the learners
+const courseRoutes = require('./api/course-routes')
+
 //Set PORT to be connected to if not available in the .env default one will be used
 const apiPort = process.env.PORT || 4001	
 
@@ -47,6 +50,9 @@ app.use('/users', learnerRoutes)
 
 //Set the routes for the learners according to their imported routes api
 app.use('/superadmin', superAdminRoutes)
+
+//Set the routes for course according to their imported routes api
+app.use('/course', courseRoutes)
 
 //Start listening to the app port to handle request
 app.listen(apiPort, () => {

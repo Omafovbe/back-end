@@ -14,7 +14,7 @@ const DBURL = process.env.MONGO_URL;
 const MLABDBURL = process.env.MLAB_URL;
 
 //Mongo connection code
-mongoose.connect(DBURL, { useNewUrlParser: true, useCreateIndex:true, useUnifiedTopology: true})
+mongoose.connect(MLABDBURL, { useNewUrlParser: true, useCreateIndex:true, useUnifiedTopology: true})
     .catch(err => {
         console.error('MongoDB connection error:', err.message)
     })
