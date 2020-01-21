@@ -1,5 +1,6 @@
 //Import bcrypt to hash password
 const bcrypt = require('bcryptjs');
+const path = require('path')
 
 //Import validator to valid incoming email address
 const validator = require("email-validator");
@@ -273,22 +274,46 @@ changePassword = (req, res) => {
         })
 }
 
-//Handle profile updating of each user
+//pic-profile-update
+uploadPicture = (req, res) => {
+    if (!req.file){
+        res.status(400).json({
+            message: 'Please select an image for upload'
+        })
+    }
 
-updateProfle = (req, res) => {
-    const userData = new User({
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        age: req.body.age,
-    });
+    if (req.fileValidationError) {
+        res.status(400).json({
+            message: req.fileValidationError
+        })
+    }
+    //console.log(req.file)
+    res.status(200).json({
+        message: 'Upload successful',
+        file: req.file.filename
+    })
+}
+
+//Handle profile updating of each user
+updateProfile = (req, res) => {
+    const {userId, firstname, lastname, age} = req.params
+
+    User.findOneAndUpdate({_id: userId}, {
+            firstname: firstname, 
+            lastname: lastname, 
+            age: age})
+        .then(() => res.status(200).json({message: 'Profile updated successfully'}))
+        .catch(err => { res.status(500).json(err) })
 }
 
 module.exports = {
 	signup,
 	login,
-	me,
-    sendPasswordresetLink,
-    resetPassword,
-    changePassword,
-    updateProfle,   
+  uploadPicture
+  me,
+  sendPasswordresetLink,
+  resetPassword,
+  changePassword,
+  updateProfle,  
+  uploadPicture,
 }
