@@ -7,6 +7,9 @@ const router = express.Router();
 //Import auth controller
 const AuthController = require('../controllers/authCtrl')
 
+//Import Multer Configuration
+const upload = require('../multerConfig')
+
 //Import check-auth middleware
 const checkAuth = require('../middleware/check-auth')
 
@@ -28,6 +31,7 @@ router.post('/resetPassword/:token', AuthController.resetPassword);
 //Handle resetting of the log in user and (PROTECTED) based on the logged in user to be able to access it
 router.post('/changePassword', checkAuth, AuthController.changePassword);
 
+router.post('/profile-pic', upload.single('avatar'), AuthController.uploadPicture)
 
 //Export the module for use in other modules
 module.exports = router
