@@ -30,6 +30,9 @@ const app = express()
 //Use bodyparser to parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true}))
 
+//Static directory to save and serve our uploaded files
+app.use(express.static(__dirname + '/public'));
+
 //Check the database connection
 dbCon.once('open', () => console.log('MongoDB connection established!'))
 
