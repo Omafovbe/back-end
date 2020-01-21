@@ -14,7 +14,7 @@ const courseDetailSchema = new Schema(
     {
         title: {type: String, unique: true},
         description: String,
-        coverPictureL: String,
+        coverPicture: String,
         price: String,
         outline: String,
         linkToCoursePDF: String,
@@ -24,7 +24,7 @@ const courseDetailSchema = new Schema(
         linkToTestBoard: String,
         linkToExam: String,
         linkToCourseEvaluation: String,
-        status: String,
+        status: {type: String, default: 'active'},
         createdBy: {type: String, ref: 'Users'},
         regDate: {type: String, default: date},
         regTime: {type: String, default:time},

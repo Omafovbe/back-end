@@ -117,9 +117,14 @@ registerStaff = (req, res) => {
 acceptInstructors = (req, res) => {
 
 } 
+//let super admin suspend active user/staff
+suspendOneUser = (req, res) => {
+
+}
 
 module.exports = {
 	getAllUsers,
+    getOneUser,
 	deleteOneUser,
     registerStaff,
     acceptInstructors,

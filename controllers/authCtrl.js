@@ -10,8 +10,15 @@ const jwt = require("jsonwebtoken");
 //Import multer middleware to upload files
 const multer = require('multer');
 
+//Import nodemailer to email user
+const nodemailer =  require('nodemailer');
+
 //Import users database schema
 const User =  require('../models/userModel');
+
+//Import password reset database schema
+const PasswordReset =  require('../models/passwordResetModel');
+
 
 //Handle signup without auth for all users
 signup = (req, res) => {
@@ -101,17 +108,16 @@ login = (req, res, next) => {
                     message: "Auth failed"
                 })
             }
-        } else{
+        }else{
             res.status(401).json({
                 message: "Auth failed"
             })
         }
-         }).catch( err => {
-            res.status(500).json({
-                message: 'An error occured'
-            })
+    }).catch( err => {
+        res.status(500).json({
+            message: 'An error occured'
         })
-    
+    })
 }
 
 //Handle displaying of data of a single user based on their id (PROTECTED)
@@ -135,18 +141,132 @@ me = (req, res) => {
     })
 }
 
+//Handles forgot password and generate token to be stored to forgot password database
+sendPasswordresetLink = (req, res) => {
+    //Validate the inputed email address before proccedding else it'll return INVALID EMAIL ADDRESS
+    if(validator.validate(req.body.email)){
+        let email = req.body.email
+        //Find if the email is really in the database else it return USER NOT FOUND
+        User.findOne({ email: email }).then(user => { 
+            if (!user) {
+                res.status(500).json({
+                    message: 'User not found'
+                })
+            }
+            else{  
+                //If email is in db, then move to resetpassword collection to check whether that paricular email/user
+                //has token already generated the last time he/she forgot password 
+                PasswordReset.findOne({ email: email })
+                .then(inHouseToken => {
+                    //If token of that email/user found in house it take it out else it generate new one and save to 
+                    //db for future use
+                    if(inHouseToken){
+                        const token = inHouseToken.token;
+                    }else{
+                         const token = jwt.sign(
+                            {
+                                _id: user._id,
+                            },
+                            process.env.JWT_SECRET,
+                            {
+                                expiresIn: "1h"
+                            }
+                        );
+
+                        const resetData = new PasswordReset({
+                            email: email,
+                            resetPasswordToken: token,
+                        });
+                        resetData.save()
+                    }
+                    //After TOKEN is get from either end an email us send to the user to update password through 
+                    //the link sent
+                    var smtpTransport = nodemailer.createTransport({
+                    service: process.env.EMAIL_PROVIDER, 
+                        auth: {
+                            //allow less secured app settings must be selected for this gmail account
+                            user: process.env.EMAIL_ADDRESS,
+                            pass: process.env.EMAIL_PASSWORD,
+                        }
+                    });
+                    var mailOptions = {
+                        to: user.email,
+                        from: process.env.EMAIL_ADDRESS,,
+                        subject: 'Account Password Reset',
+                        text: 'You are receiving this because there was a request to reset the password for your account.\n\n' +
+                          'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
+                          'http://' + req.headers.host + '/reset/' + token + '\n\n' +
+                          'If you did not make a password reset request, please ignore this email. Thanks.\n'
+                    };
+                    smtpTransport.sendMail(mailOptions, function(err) {
+                        res.status(200).json({
+                            message: 'Email sent',
+                        })
+                    });
+                })
+                .catch(err => {
+                    res.status(500).json({
+                        message: 'An error occured'
+                    })
+                })
+            }
+        })
+    }else{
+        res.status(400).json({
+            message: 'Invalid email address',
+        })
+    }
+}
+
+resetPassword = (req, res) => {
+    //get user id based on login user provided token
+    const token = req.params.token;
+    //get new password from the request body
+    const  newPassword  = req.body.newPassword
+    PasswordReset.findOne({ token: token })
+    .then(inHouseToken => {
+        if (inHouseToken) {
+            //find user with that email if token is right
+            User.findOne({ email: email})
+            .then( user => {
+                let hash = bcrypt.hashSync(newPassword, 10)
+                User.findOneAndUpdate({email: email}, {password: hash})
+                .then(() => res.status(200).json({message: 'Password change Successful'}))
+                .catch( err => res.status(500).json(err))
+            })
+            .catch(() => {
+                res.status(401).json({message: 'Unauthorized access'})
+            })
+        }else{
+            res.status(401).json({message: 'Unauthorized access'})   
+        }
+    })
+}
+
 //Handling resetting of the password of the logged in user by checking the id of the user through the token 
 //sent by the request header in which also pass through the check-auth middleware before coming here.
 changePassword = (req, res) => {
+    //get user id based on login user provided token
     const userId = req.authData._id;
-    const { newPassword } = req.body.newPassword
 
+    //get old and new password from the request body
+    const oldPassword = req.body.oldPassword
+    const  newPassword  = req.body.newPassword
+
+    //find user with that id
     User.findOne({_id: userId})
         .then( user => {
-            let hash = bcrypt.hashSync(newPassword, 10)
-            User.findOneAndUpdate({_id: userId}, {password: hash})
-            .then(() => res.status(200).json({message: 'Password change Successful'}))
-            .catch( err => res.status(500).json(err))
+            //compare if old password is equal to the finded user in house password
+            var compareHash = bcrypt.compareSync(oldPassword, user.password);
+            //if yes then update
+            if(compareHash){
+                let hash = bcrypt.hashSync(newPassword, 10)
+                User.findOneAndUpdate({_id: userId}, {password: hash})
+                .then(() => res.status(200).json({message: 'Password change Successful'}))
+                .catch( err => res.status(500).json(err))
+            } else {
+                res.status(401).json({message: 'Old password dosen\'t match'})
+            }
         })
         .catch(() => {
             res.status(401).json({message: 'Unauthorized access'})
@@ -167,6 +287,8 @@ module.exports = {
 	signup,
 	login,
 	me,
-    updateProfle,
+    sendPasswordresetLink,
+    resetPassword,
     changePassword,
+    updateProfle,   
 }

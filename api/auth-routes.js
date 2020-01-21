@@ -16,11 +16,17 @@ router.post('/signup', AuthController.signup);
 //Handle login route
 router.post('/login',AuthController.login);
 
-//Handle get request for a single user based on their specific ID (PROTECTED)
-router.get('/me/:userId', checkAuth, AuthController.me);
+//Handle get request for a single user based on their specific ID gotten from token (PROTECTED)
+router.get('/me', checkAuth, AuthController.me);
+
+//Handle seding of link to reset user password
+router.post('/sendPasswordresetLink', AuthController.sendPasswordresetLink);
+
+//Handle resetting of user password through the link sent and if the token with the link is correct
+router.post('/resetPassword/:token', AuthController.resetPassword);
 
 //Handle resetting of the log in user and (PROTECTED) based on the logged in user to be able to access it
-router.get('/changePassword', checkAuth, AuthController.changePassword);
+router.post('/changePassword', checkAuth, AuthController.changePassword);
 
 
 //Export the module for use in other modules
