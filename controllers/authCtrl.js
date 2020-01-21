@@ -1,7 +1,6 @@
 //Import bcrypt to hash password
 const bcrypt = require('bcryptjs');
 const path = require('path')
-let formidable = require('formidable')
 
 //Import validator to valid incoming email address
 const validator = require("email-validator");
