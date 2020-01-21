@@ -22,6 +22,9 @@ const userSchema = new Schema(
         regTime: {type: String, default:time},
         isLearner: {type: Boolean, default: true},
         isInstructor: {type: Boolean, default: false},
+        isSuperAdmin: {type: Boolean, default: false},
+        staffLevelStatus: {type: mongoose.Schema.Types.ObjectId, default: null, ref: 'StaffLevel'},
+        avatar: String,
     },
     { timestamps: true },
 )

@@ -8,29 +8,51 @@ const validator = require("email-validator");
 //Import jsonwebtoken to generate token when user login for authentication
 const jwt = require("jsonwebtoken");
 
+//Import multer middleware to upload files
+const multer = require('multer');
+
+//Import nodemailer to email user
+const nodemailer =  require('nodemailer');
+
 //Import users database schema
 const User =  require('../models/userModel');
 
+//Import password reset database schema
+const PasswordReset =  require('../models/passwordResetModel');
+
+
 //Handle signup without auth for all users
 signup = (req, res) => {
-    //If email already exist do not create account
-    if (User.findOne({ email: req.body.email })) {
-        res.status(400).json({
-            message: 'Email already exist'
-        })
-    }
-
-	var hash = bcrypt.hashSync(req.body.password, 10);
-    const userData = new User({
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        username: req.body.username,
-        age: req.body.age,
-        email: req.body.email,
-        password: hash,
-    });
-
+    //Validate incoming email address before proceeding
     if(validator.validate(req.body.email)){
+        //If email already exist do not create account
+        User.findOne({ email: req.body.email, }).then(user => {
+            if(user.email == req.body.email){
+                res.status(400).json({
+                    message: 'Email already exist'
+                })
+            }
+        })
+
+        //If username already exist do not create account
+        User.findOne({ username: req.body.username, }).then(user => {
+            if(user.username == req.body.username){
+                res.status(400).json({
+                    message: 'Username already exist'
+                })
+            }
+        })
+
+        //Create account if username and email aren't in db
+        var hash = bcrypt.hashSync(req.body.password, 10);
+        const userData = new User({
+            firstname: req.body.firstname,
+            lastname: req.body.lastname,
+            username: req.body.username,
+            age: req.body.age,
+            email: req.body.email,
+            password: hash,
+        });
         userData.save().then(
         saved => {
             console.log("Saved to database with a unique ID of: " + saved._id)
@@ -45,7 +67,7 @@ signup = (req, res) => {
                 error,
             })
         })
-    }else{
+    } else{
         res.status(400).json({
             message: 'Invalid email address',
         })
@@ -53,12 +75,10 @@ signup = (req, res) => {
 };
 
 //Handle login and and generate token to be stored to the client and send back for verification when requesting for a protected route api
-login = (req, res) => {
-	console.log(req.body)
+login = (req, res, next) => {
 	let email = req.body.email
     let pswd = req.body.password
     User.findOne({ email: email }).then( user => { 
-        console.log(user._id) 
 
         if (user) {
             var compareHash = bcrypt.compareSync(pswd, user.password);
@@ -68,6 +88,10 @@ login = (req, res) => {
                     username: user.username,
                     regDate: user.regDate,
                     regTime: user.regTime,
+                    isLearner: user.isLearner,
+                    isInstructor: user.isInstructor,
+                    isSuperAdmin: user.isSuperAdmin,
+                    staffLevelStatus: user.staffLevelStatus
                 },
                     process.env.JWT_SECRET,
                     {
@@ -80,25 +104,27 @@ login = (req, res) => {
                     user: userWithoutPassword,
                     token: token
                 })
+            } else{
+                res.status(401).json({
+                    message: "Auth failed"
+                })
             }
-        } else {
-            res.status(400).json({
-                message: 'Email not registered'
+        }else{
+            res.status(401).json({
+                message: "Auth failed"
             })
         }
-        
     }).catch( err => {
         res.status(500).json({
             message: 'An error occured'
         })
     })
-    
 }
 
 //Handle displaying of data of a single user based on their id (PROTECTED)
 me = (req, res) => {
-	const uID = req.params.userId;
-    User.findById(uID).select('firstname lastname username email age regDate regTime isLearner  isInstructor _id').then(
+    const uID = req.authData._id;
+    User.findById(uID).select('firstname lastname username email age regDate regTime isLearner isInstructor isSuperAdmin staffLevelStatus _id').then(
         result => {
         res.status(200).json({
             result: result,
@@ -116,61 +142,139 @@ me = (req, res) => {
     })
 }
 
-verifyToken = (req, res) => {
-    //Get the token from the request header
-    const { token } = req.params
-
-    //Decode the token
-    const payload = jwt.decode(token, process.env.JWT_SECRET)
-
-    //extract user ID from jwt payload and search for the user
-    User.findOne({_id: payload._id})
-        .then(
-            user => {
-
-                //if user is found, redirect user to a page to change paasword
-                if (user) {
-                    res.status(200).json({
-                        message: 'Token Verified',
-                        request: {
-                            type: 'GET',
-                            url: `http://${req.headers.host}/resetpassword/${user._id}`
-                        }
-                    })
-                } 
-                //if not the user was not found
-                else {
-                    res.status(406).json({
-                        message: 'Invalid Token'
-                    })
-                }
+//Handles forgot password and generate token to be stored to forgot password database
+sendPasswordresetLink = (req, res) => {
+    //Validate the inputed email address before proccedding else it'll return INVALID EMAIL ADDRESS
+    if(validator.validate(req.body.email)){
+        let email = req.body.email
+        //Find if the email is really in the database else it return USER NOT FOUND
+        User.findOne({ email: email }).then(user => { 
+            if (!user) {
+                res.status(500).json({
+                    message: 'User not found'
+                })
             }
-        )
-        .catch( err => {
-            //If a problem persist from validating the token display the error
-            console.log(err)
-            res.status(400).json({
-                err,
-            })
+            else{  
+                //If email is in db, then move to resetpassword collection to check whether that paricular email/user
+                //has token already generated the last time he/she forgot password 
+                PasswordReset.findOne({ email: email })
+                .then(inHouseToken => {
+                    //If token of that email/user found in house it take it out else it generate new one and save to 
+                    //db for future use
+                    if(inHouseToken){
+                        const token = inHouseToken.token;
+                    }else{
+                         const token = jwt.sign(
+                            {
+                                _id: user._id,
+                            },
+                            process.env.JWT_SECRET,
+                            {
+                                expiresIn: "1h"
+                            }
+                        );
+
+                        const resetData = new PasswordReset({
+                            email: email,
+                            resetPasswordToken: token,
+                        });
+                        resetData.save()
+                    }
+                    //After TOKEN is get from either end an email us send to the user to update password through 
+                    //the link sent
+                    var smtpTransport = nodemailer.createTransport({
+                    service: process.env.EMAIL_PROVIDER, 
+                        auth: {
+                            //allow less secured app settings must be selected for this gmail account
+                            user: process.env.EMAIL_ADDRESS,
+                            pass: process.env.EMAIL_PASSWORD,
+                        }
+                    });
+                    var mailOptions = {
+                        to: user.email,
+                        from: process.env.EMAIL_ADDRESS,,
+                        subject: 'Account Password Reset',
+                        text: 'You are receiving this because there was a request to reset the password for your account.\n\n' +
+                          'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
+                          'http://' + req.headers.host + '/reset/' + token + '\n\n' +
+                          'If you did not make a password reset request, please ignore this email. Thanks.\n'
+                    };
+                    smtpTransport.sendMail(mailOptions, function(err) {
+                        res.status(200).json({
+                            message: 'Email sent',
+                        })
+                    });
+                })
+                .catch(err => {
+                    res.status(500).json({
+                        message: 'An error occured'
+                    })
+                })
+            }
         })
+    }else{
+        res.status(400).json({
+            message: 'Invalid email address',
+        })
+    }
 }
 
-changePassword = (req, res) => {
-    const { userId } = req.params
-    const { newPassword } = req.body
+resetPassword = (req, res) => {
+    //get user id based on login user provided token
+    const token = req.params.token;
+    //get new password from the request body
+    const  newPassword  = req.body.newPassword
+    PasswordReset.findOne({ token: token })
+    .then(inHouseToken => {
+        if (inHouseToken) {
+            //find user with that email if token is right
+            User.findOne({ email: email})
+            .then( user => {
+                let hash = bcrypt.hashSync(newPassword, 10)
+                User.findOneAndUpdate({email: email}, {password: hash})
+                .then(() => res.status(200).json({message: 'Password change Successful'}))
+                .catch( err => res.status(500).json(err))
+            })
+            .catch(() => {
+                res.status(401).json({message: 'Unauthorized access'})
+            })
+        }else{
+            res.status(401).json({message: 'Unauthorized access'})   
+        }
+    })
+}
 
+//Handling resetting of the password of the logged in user by checking the id of the user through the token 
+//sent by the request header in which also pass through the check-auth middleware before coming here.
+changePassword = (req, res) => {
+    //get user id based on login user provided token
+    const userId = req.authData._id;
+
+    //get old and new password from the request body
+    const oldPassword = req.body.oldPassword
+    const  newPassword  = req.body.newPassword
+
+    //find user with that id
     User.findOne({_id: userId})
         .then( user => {
-            let hash = bcrypt.hashSync(newPassword, 10)
-            User.findOneAndUpdate({_id: userId}, {password: hash})
-            .then(() => res.status(200).json({message: 'Password change Successful'}))
-            .catch( err => res.status(500).json(err))
+            //compare if old password is equal to the finded user in house password
+            var compareHash = bcrypt.compareSync(oldPassword, user.password);
+            //if yes then update
+            if(compareHash){
+                let hash = bcrypt.hashSync(newPassword, 10)
+                User.findOneAndUpdate({_id: userId}, {password: hash})
+                .then(() => res.status(200).json({message: 'Password change Successful'}))
+                .catch( err => res.status(500).json(err))
+            } else {
+                res.status(401).json({message: 'Old password dosen\'t match'})
+            }
         })
         .catch(() => {
-            res.status(404).json({message: 'Invalid User'})
+            res.status(401).json({message: 'Unauthorized access'})
         })
 }
 
+//pic-profile-update
 uploadPicture = (req, res) => {
     if (!req.file){
         res.status(400).json({
@@ -190,6 +294,7 @@ uploadPicture = (req, res) => {
     })
 }
 
+//Handle profile updating of each user
 updateProfile = (req, res) => {
     const {userId, firstname, lastname, age} = req.params
 
@@ -204,8 +309,11 @@ updateProfile = (req, res) => {
 module.exports = {
 	signup,
 	login,
-    me,
-    verifyToken,
-    changePassword,
-    uploadPicture
+  uploadPicture
+  me,
+  sendPasswordresetLink,
+  resetPassword,
+  changePassword,
+  updateProfle,  
+  uploadPicture,
 }

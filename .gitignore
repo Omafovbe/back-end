@@ -6,7 +6,8 @@
 /out-tsc
 
 .env
-
+ populateDB.js
+ 
 # dependencies
 /node_modules
 
