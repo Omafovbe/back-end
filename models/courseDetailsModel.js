@@ -14,7 +14,7 @@ const courseDetailSchema = new Schema(
     {
         title: {type: String, unique: true},
         description: String,
-        coverPicture: String,
+        coverPicture: Object,
         price: String,
         outline: String,
         linkToCoursePDF: String,

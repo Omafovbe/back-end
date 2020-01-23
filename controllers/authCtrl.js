@@ -1,5 +1,7 @@
 //Import bcrypt to hash password
 const bcrypt = require('bcryptjs');
+
+//Importation
 const path = require('path')
 
 //Import validator to valid incoming email address
@@ -146,9 +148,9 @@ me = (req, res) => {
 sendPasswordresetLink = (req, res) => {
     //Validate the inputed email address before proccedding else it'll return INVALID EMAIL ADDRESS
     if(validator.validate(req.body.email)){
-        let email = req.body.email
+        let userEmail = req.body.email
         //Find if the email is really in the database else it return USER NOT FOUND
-        User.findOne({ email: email }).then(user => { 
+        User.findOne({ email: userEmail }).then(user => { 
             if (!user) {
                 res.status(500).json({
                     message: 'User not found'
@@ -157,12 +159,12 @@ sendPasswordresetLink = (req, res) => {
             else{  
                 //If email is in db, then move to resetpassword collection to check whether that paricular email/user
                 //has token already generated the last time he/she forgot password 
-                PasswordReset.findOne({ email: email })
+                PasswordReset.findOne({ email: userEmail })
                 .then(inHouseToken => {
                     //If token of that email/user found in house it take it out else it generate new one and save to 
                     //db for future use
                     if(inHouseToken){
-                        const token = inHouseToken.token;
+                        const token = inHouseToken.resetPasswordToken;
                     }else{
                          const token = jwt.sign(
                             {
@@ -175,7 +177,7 @@ sendPasswordresetLink = (req, res) => {
                         );
 
                         const resetData = new PasswordReset({
-                            email: email,
+                            email: userEmail,
                             resetPasswordToken: token,
                         });
                         resetData.save()
@@ -183,7 +185,9 @@ sendPasswordresetLink = (req, res) => {
                     //After TOKEN is get from either end an email us send to the user to update password through 
                     //the link sent
                     var smtpTransport = nodemailer.createTransport({
-                    service: process.env.EMAIL_PROVIDER, 
+                        host: EMAIL_PROVIDER,
+                        port: EMAIL_PROVIDER_PORT,
+                        secure: true,
                         auth: {
                             //allow less secured app settings must be selected for this gmail account
                             user: process.env.EMAIL_ADDRESS,
@@ -192,7 +196,7 @@ sendPasswordresetLink = (req, res) => {
                     });
                     var mailOptions = {
                         to: user.email,
-                        from: process.env.EMAIL_ADDRESS,,
+                        from: process.env.EMAIL_ADDRESS,
                         subject: 'Account Password Reset',
                         text: 'You are receiving this because there was a request to reset the password for your account.\n\n' +
                           'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
@@ -207,12 +211,13 @@ sendPasswordresetLink = (req, res) => {
                 })
                 .catch(err => {
                     res.status(500).json({
-                        message: 'An error occured'
+                        message: 'An error occured',
+                        error: err
                     })
                 })
             }
         })
-    }else{
+    }else {
         res.status(400).json({
             message: 'Invalid email address',
         })
@@ -275,7 +280,8 @@ changePassword = (req, res) => {
 }
 
 //pic-profile-update
-uploadPicture = (req, res) => {
+uploadAvatar = (req, res) => {
+    const uID = req.authData._id;
     if (!req.file){
         res.status(400).json({
             message: 'Please select an image for upload'
@@ -287,33 +293,37 @@ uploadPicture = (req, res) => {
             message: req.fileValidationError
         })
     }
-    //console.log(req.file)
-    res.status(200).json({
-        message: 'Upload successful',
-        file: req.file.filename
-    })
+    else {
+         User.findOneAndUpdate({_id: uID}, {
+            avatar: req.file
+        }).then(() =>
+            res.status(200).json({
+                message: 'Upload successful',
+                file: req.file.filename
+            })
+        )
+    }
 }
 
 //Handle profile updating of each user
 updateProfile = (req, res) => {
-    const {userId, firstname, lastname, age} = req.params
-
-    User.findOneAndUpdate({_id: userId}, {
-            firstname: firstname, 
-            lastname: lastname, 
-            age: age})
-        .then(() => res.status(200).json({message: 'Profile updated successfully'}))
-        .catch(err => { res.status(500).json(err) })
+    const uID = req.authData._id;
+    User.findOneAndUpdate({_id: uID}, {
+        firstname: req.body.firstname, 
+        lastname: req.body.lastname, 
+        age: req.body.age
+    })
+    .then(() => res.status(200).json({message: 'User profile updated successfully'}))
+    .catch(err => { res.status(500).json(err) })
 }
 
 module.exports = {
-	signup,
+    signup,
 	login,
-  uploadPicture
-  me,
-  sendPasswordresetLink,
-  resetPassword,
-  changePassword,
-  updateProfle,  
-  uploadPicture,
+    me,
+    sendPasswordresetLink,
+    resetPassword,
+    changePassword,
+    updateProfile,  
+    uploadAvatar,
 }

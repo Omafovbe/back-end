@@ -24,7 +24,7 @@ const userSchema = new Schema(
         isInstructor: {type: Boolean, default: false},
         isSuperAdmin: {type: Boolean, default: false},
         staffLevelStatus: {type: mongoose.Schema.Types.ObjectId, default: null, ref: 'StaffLevel'},
-        avatar: String,
+        avatar: Object,
     },
     { timestamps: true },
 )

@@ -2,22 +2,32 @@
 const Course =  require('../models/courseDetailsModel');
 
 //Import users database schema
-const CourseCategory =  require('./models/courseCategoryModel')
+const CourseCategory =  require('../models/courseCategoryModel')
 
 //Handling creation of courses JUST only by the user with the level of clearance required!
 createCourse = (req, res) => {
 	//Create if clearance (isSuperAdmin or staff is education officer)
 	if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer"){
 		Course.findOne({ title: req.body.title, }).then(course => {
-            if(course.title == req.body.title){
+            if(course){
                 res.status(400).json({
                     message: 'Course title already exist'
                 })
             }else{
+            	if (!req.file){
+			        res.status(400).json({
+			            message: 'Please select an image for upload'
+			        })
+			    }
+
+			    if (req.fileValidationError) {
+			        res.status(400).json({
+			            message: req.fileValidationError
+			        })
+			    }
             	const courseData = new Course({
 		            title: req.body.title,
 		            description: req.body.description,
-		            // coverPicture: upload cover picture,
 		            price: req.body.price,
 		            outline: req.body.outline,
 		            linkToCoursePDF: req.body.linkToCoursePDF,
@@ -32,6 +42,9 @@ createCourse = (req, res) => {
 		        courseData.save()
 		        .then(
 		        saved => {
+		        	User.findOneAndUpdate({_id: saved._id}, {
+			            coverPicture: req.file
+			        })
 		            console.log("Saved to database with a unique ID of: " + saved._id)
 		            res.status(200).json({
 		                success: true,
@@ -57,8 +70,10 @@ createCourse = (req, res) => {
 createCourseCategory = (req, res) => {
 	//Create if clearance (isSuperAdmin or staff is education officer)
 	if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer"){
+		console.log(req.body)
 		CourseCategory.findOne({ title: req.body.title, }).then(course => {
-            if(course.title == req.body.title){
+			console.log(course)
+            if(course){
                 res.status(400).json({
                     message: 'Course Category title already exist'
                 })
