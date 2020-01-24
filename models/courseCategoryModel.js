@@ -17,7 +17,7 @@ const courseCategorySchema = new Schema(
         status: {type: String, default: 'active'},
         regDate: {type: String, default: date},
         regTime: {type: String, default:time},
-        createdBy: {type: String, ref: 'Users'},
+        createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'Users'},
     },
     { timestamps: true },
 )

@@ -8,6 +8,7 @@ const CourseCategory =  require('../models/courseCategoryModel')
 createCourse = (req, res) => {
 	//Create if clearance (isSuperAdmin or staff is education officer)
 	if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer"){
+		const by = req.authData._id;
 		Course.findOne({ title: req.body.title, }).then(course => {
             if(course){
                 res.status(400).json({
@@ -37,7 +38,8 @@ createCourse = (req, res) => {
 			        linkToTestBoard: req.body.linkToTestBoard,
 			        linkToExam: req.body.linkToExam,
 			        linkToCourseEvaluation: req.body.linkToCourseEvaluation,
-			        createBy: req.authData._id
+			        createdBy: req.authData._id,
+			        category: req.body.category_id
 		        });
 		        courseData.save()
 		        .then(
