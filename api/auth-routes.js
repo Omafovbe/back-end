@@ -8,7 +8,7 @@ const router = express.Router();
 const AuthController = require('../controllers/authCtrl')
 
 //Import Multer Configuration
-const upload = require('../multerConfig')
+const upload = require('../middleware/multerConfig')
 
 //Import check-auth middleware
 const checkAuth = require('../middleware/check-auth')
@@ -17,10 +17,13 @@ const checkAuth = require('../middleware/check-auth')
 router.post('/signup', AuthController.signup);
 
 //Handle login route
-router.post('/login',AuthController.login);
+router.post('/login', AuthController.login);
 
 //Handle get request for a single user based on their specific ID gotten from token (PROTECTED)
 router.get('/me', checkAuth, AuthController.me);
+
+//Handle updating of log in user (PROTECTED)
+router.post('/updateProfile', checkAuth, AuthController.updateProfile);
 
 //Handle seding of link to reset user password
 router.post('/sendPasswordresetLink', AuthController.sendPasswordresetLink);
@@ -31,7 +34,8 @@ router.post('/resetPassword/:token', AuthController.resetPassword);
 //Handle resetting of the log in user and (PROTECTED) based on the logged in user to be able to access it
 router.post('/changePassword', checkAuth, AuthController.changePassword);
 
-router.post('/profile-pic', upload.single('avatar'), AuthController.uploadPicture)
+//Handle uploading of avatar 
+router.post('/uploadAvatar', checkAuth, upload.single('avatar'), AuthController.uploadAvatar)
 
 //Export the module for use in other modules
 module.exports = router

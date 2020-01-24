@@ -14,7 +14,7 @@ const courseDetailSchema = new Schema(
     {
         title: {type: String, unique: true},
         description: String,
-        coverPicture: String,
+        coverPicture: Object,
         price: String,
         outline: String,
         linkToCoursePDF: String,
@@ -25,7 +25,8 @@ const courseDetailSchema = new Schema(
         linkToExam: String,
         linkToCourseEvaluation: String,
         status: {type: String, default: 'active'},
-        createdBy: {type: String, ref: 'Users'},
+        createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'Users'},
+        category: {type: mongoose.Schema.Types.ObjectId, ref: 'CourseCategory'},
         regDate: {type: String, default: date},
         regTime: {type: String, default:time},
     },

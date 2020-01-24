@@ -10,10 +10,14 @@ const checkAuth = require('../middleware/check-auth')
 //Import suAdmin controller
 const CourseController = require('../controllers/courseCtrl')
 
-//handle 
-router.post('/createCourse', checkAuth, AuthController.createCourse);
+//Import Multer Configuration
+const upload = require('../middleware/multerConfig')
 
-router.post('/createCourseCategory', checkAuth, AuthController.signup);
+//handle creation of courses by the Super Admin and Education officer alone 
+router.post('/createCourse', checkAuth, upload.single('coverpicture'), CourseController.createCourse);
+
+//handle creation of course category by the Super Admin and Education officer alone 
+router.post('/createCourseCategory', checkAuth, CourseController.createCourseCategory);
 
 //Export the module for use in other modules
 module.exports = router
