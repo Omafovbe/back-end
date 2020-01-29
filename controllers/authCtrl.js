@@ -262,7 +262,7 @@ changePassword = (req, res) => {
     //find user with that id
     User.findOne({_id: userId})
         .then( user => {
-            //compare if old password is equal to the finded user in house password
+            //compare if old password is equal to the found user in house password
             var compareHash = bcrypt.compareSync(oldPassword, user.password);
             //if yes then update
             if(compareHash){
@@ -288,7 +288,7 @@ uploadAvatar = (req, res) => {
         })
     }
 
-    if (req.fileValidationError) {
+    else if (req.fileValidationError) {
         res.status(400).json({
             message: req.fileValidationError
         })
