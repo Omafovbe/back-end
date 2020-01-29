@@ -23,6 +23,7 @@ const userSchema = new Schema(
         isLearner: {type: Boolean, default: true},
         isInstructor: {type: Boolean, default: false},
         isSuperAdmin: {type: Boolean, default: false},
+        isStaffStatus: {type: String, default: 'inactive'},
         staffLevelStatus: {type: mongoose.Schema.Types.ObjectId, default: null, ref: 'StaffLevel'},
         avatar: Object,
     },
