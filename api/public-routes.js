@@ -4,7 +4,7 @@ const express = require('express');
 //Initialize the router
 const router = express.Router();
 
-//Import suAdmin controller
+//Import Public controller
 const PublicController = require('../controllers/publicCtrl')
 
 //handle showing courses to the public with the option to paid before accessing 

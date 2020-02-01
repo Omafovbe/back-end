@@ -185,18 +185,18 @@ sendPasswordresetLink = (req, res) => {
                     //After TOKEN is get from either end an email us send to the user to update password through 
                     //the link sent
                     var smtpTransport = nodemailer.createTransport({
-                        host: EMAIL_PROVIDER,
-                        port: EMAIL_PROVIDER_PORT,
+                        host: MAIL_HOST,
+                        port: MAIL_PORT,
                         secure: true,
                         auth: {
                             //allow less secured app settings must be selected for this gmail account
-                            user: process.env.EMAIL_ADDRESS,
-                            pass: process.env.EMAIL_PASSWORD,
+                            user: process.env.MAIL_USERNAME,
+                            pass: process.env.MAIL_PASSWORD,
                         }
                     });
                     var mailOptions = {
                         to: user.email,
-                        from: process.env.EMAIL_ADDRESS,
+                        from: process.env.MAIL_FROM_ADDRESS,
                         subject: 'Account Password Reset',
                         text: 'You are receiving this because there was a request to reset the password for your account.\n\n' +
                           'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
@@ -204,16 +204,22 @@ sendPasswordresetLink = (req, res) => {
                           'If you did not make a password reset request, please ignore this email. Thanks.\n'
                     };
                     smtpTransport.sendMail(mailOptions, function(err) {
+                        if(err){
+                            return res.status(500).json({
+                                message: 'error',
+                                error: err
+                            })
+                        }
                         res.status(200).json({
                             message: 'Email sent',
                         })
                     });
                 })
                 .catch(err => {
-                    res.status(500).json({
-                        message: 'An error occured',
-                        error: err
-                    })
+                    // res.status(500).json({
+                    //     message: 'An error occured',
+                    //     error: err
+                    // })
                 })
             }
         })

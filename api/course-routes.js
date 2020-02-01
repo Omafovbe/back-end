@@ -7,7 +7,7 @@ const router = express.Router();
 //Import check-auth middleware
 const checkAuth = require('../middleware/check-auth')
 
-//Import suAdmin controller
+//Import Cours Ccontroller
 const CourseController = require('../controllers/courseCtrl')
 
 //Import Multer Configuration

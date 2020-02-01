@@ -1,21 +1,24 @@
 //Import test questions database schema
-const testQuestion =  require('../models/testQuestionsModel');
+const TestQuestion =  require('../models/testQuestionModel');
 
-addQuestion = (req, res) => {
+addTestQuestion = (req, res) => {
     if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer") {
 
         const course_id = req.body.course_id
+        const userId = req.authData._id
 
         if(course_id){
-            const quest = new testQuestion({
+            const quest = new TestQuestion({
                 question: req.body.question,
-                options: { optionA: req.body.optionA,
+                options: { 
+                    optionA: req.body.optionA,
                     optionB: req.body.optionB,
                     optionC: req.body.optionC,
                     optionD: req.body.optionD,            
                 },
                 answerKey: req.body.answerKey,
-                courseID: course_id
+                courseID: course_id,
+                addedBy: userId
             })
 
             //save the question to the collection
@@ -49,11 +52,11 @@ addQuestion = (req, res) => {
     
 }
 
-updateQuestion = (req, res) => {
+updateTestQuestion = (req, res) => {
     if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer") {
         const questionId = req.body.question_id
 
-    testQuestion.findOneAndUpdate({_id: questionId},
+    TestQuestion.findOneAndUpdate({_id: questionId},
         {
             question: req.body.question,
                 options: { optionA: req.body.optionA,
@@ -75,11 +78,11 @@ updateQuestion = (req, res) => {
     
 }
 
-deleteQuestion = (req, res) => {
+deleteTestQuestion = (req, res) => {
     if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer") {
         const questionId = req.body.question_id
 
-        testQuestion.deleteOne({_id: questionId})
+        TestQuestion.deleteOne({_id: questionId})
         .then(() => res.status(200).json({
             message: 'Deleted Successful'
         }))
@@ -91,11 +94,11 @@ deleteQuestion = (req, res) => {
     }
 }
 
-getQuestions = (req, res) => {
+getTestQuestions = (req, res) => {
     const course_id = req.params.courseId
 
     //Get the first ten questions 
-    testQuestion.find({courseId: course_id}, {courseId: 0}).limit(10)
+    TestQuestion.find({courseId: course_id}, {courseId: 0}).limit(10)
     .then(questions => {
         shuffledQuestion = shuffle(questions)
         res.status(200).json({
@@ -129,8 +132,8 @@ shuffle = (arr) => {
 }
 
 module.exports = {
-    addQuestion,
-    updateQuestion,
-    getQuestions,
-    deleteQuestion
+    addTestQuestion,
+    updateTestQuestion,
+    getTestQuestions,
+    deleteTestQuestion,
 }
