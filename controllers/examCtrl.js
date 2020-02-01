@@ -5,17 +5,20 @@ addExamQuestion = (req, res) => {
     if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer") {
 
         const course_id = req.body.course_id
+        const userId = req.authData._id
 
         if(course_id){
             const quest = new ExamQuestion({
                 question: req.body.question,
-                options: { optionA: req.body.optionA,
+                options: { 
+                    optionA: req.body.optionA,
                     optionB: req.body.optionB,
                     optionC: req.body.optionC,
                     optionD: req.body.optionD,            
                 },
                 answerKey: req.body.answerKey,
-                courseID: course_id
+                courseID: course_id,
+                addedBy: userId
             })
 
             //save the question to the collection
@@ -133,5 +136,4 @@ module.exports = {
     updateExamQuestion,
     deleteExamQuestion,
     getExamQuestions,
-    
 }

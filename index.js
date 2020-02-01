@@ -27,6 +27,12 @@ const courseRoutes = require('./api/course-routes')
 //Import the routes module for the public access
 const publicRoutes = require('./api/public-routes')
 
+//Import the routes module for test board questions
+const testRoutes = require('./api/test-routes')
+
+//Import the routes module for exam questions
+const examRoutes = require('./api/exam-routes')
+
 //Set PORT to be connected to if not available in the .env default one will be used
 const apiPort = process.env.PORT || 4001	
 
@@ -62,6 +68,12 @@ app.use('/course', courseRoutes)
 
 //Set the routes for course according to their imported routes api
 app.use('/publicaccess', publicRoutes)
+
+//Set the routes for course according to their imported routes api
+app.use('/testquestions', testRoutes)
+
+//Set the routes for course according to their imported routes api
+app.use('/examquestions', examRoutes)
 
 //Start listening to the app port to handle request
 app.listen(apiPort, () => {

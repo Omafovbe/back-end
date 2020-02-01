@@ -11,6 +11,7 @@ const examQuestionSchema = new Schema(
         options: Object,
         answerKey: String,
         courseId: {type: mongoose.Schema.Types.ObjectId, ref: 'CourseDetail'},
+        addedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'Users'}
     },
     { timestamps: true },
 )
