@@ -1,4 +1,4 @@
-//Import bcrypt to hash password
+    //Import bcrypt to hash password
 const bcrypt = require('bcryptjs');
 
 //Importation
@@ -80,7 +80,7 @@ signup = (req, res) => {
 login = (req, res, next) => {
 	let email = req.body.email
     let pswd = req.body.password
-    User.findOne({ email: email }).then( user => { 
+    User.findOne({ email: email, status: 'active' }).then( user => { 
 
         if (user) {
             var compareHash = bcrypt.compareSync(pswd, user.password);
@@ -94,6 +94,8 @@ login = (req, res, next) => {
                     isInstructor: user.isInstructor,
                     isSuperAdmin: user.isSuperAdmin,
                     staffLevelStatus: user.staffLevelStatus
+                    status: user.status,
+                    isSuspended: user.isSuspended,
                 },
                     process.env.JWT_SECRET,
                     {
@@ -126,7 +128,7 @@ login = (req, res, next) => {
 //Handle displaying of data of a single user based on their id (PROTECTED)
 me = (req, res) => {
     const uID = req.authData._id;
-    User.findById(uID).select('firstname lastname username email age regDate regTime isLearner isInstructor isSuperAdmin staffLevelStatus _id').then(
+    User.findById(uID).select('firstname lastname username email age regDate regTime isLearner isInstructor isSuperAdmin isSuspended staffLevelStatus status avatar _id').then(
         result => {
         res.status(200).json({
             result: result,

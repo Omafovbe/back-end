@@ -82,7 +82,9 @@ deleteTestQuestion = (req, res) => {
     if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer") {
         const questionId = req.body.question_id
 
-        TestQuestion.deleteOne({_id: questionId})
+        TestQuestion.findOneAndUpdate({_id: questionId}, {
+            status: 'archived'
+        })
         .then(() => res.status(200).json({
             message: 'Deleted Successful'
         }))

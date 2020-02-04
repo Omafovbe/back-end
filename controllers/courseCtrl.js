@@ -72,9 +72,7 @@ createCourse = (req, res) => {
 createCourseCategory = (req, res) => {
 	//Create if clearance (isSuperAdmin or staff is education officer)
 	if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer"){
-		console.log(req.body)
 		CourseCategory.findOne({ title: req.body.title, }).then(course => {
-			console.log(course)
             if(course){
                 res.status(400).json({
                     message: 'Course Category title already exist'
@@ -109,13 +107,36 @@ createCourseCategory = (req, res) => {
     }
 }
 
-//Allow the cleared user to suspend am active course if they wanted
+//Allow the cleared user to suspend an active course if they wanted
 suspendCourse = (req, res) => {
-
+	if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer"){
+	        const cID = req.params.course_id;
+	        Course.findOneAndUpdate({_id: cID}, {
+	            status: 'archived'
+	        })
+	        .then(() => res.status(200).json({message: 'Course suspended successfully'}))
+	        .catch(err => { res.status(500).json(err) })
+	} else {
+        res.status(500).json({
+            message: "Permission denied!"
 }
 
+//Allow the cleared user to suspend an active course category if they wanted
+suspendCourseCategory = (req, res) => {
+	if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer"){
+	        const cID = req.params.course_id;
+	        CourseCategory.findOneAndUpdate({_id: cID}, {
+	            status: 'archived'
+	        })
+	        .then(() => res.status(200).json({message: 'Course category suspended successfully'}))
+	        .catch(err => { res.status(500).json(err) })
+	} else {
+        res.status(500).json({
+            message: "Permission denied!"
+}
 module.exports = {
 	createCourse,
 	createCourseCategory,
-	suspendCourse
+	suspendCourse,
+	suspendCourseCategory
 }

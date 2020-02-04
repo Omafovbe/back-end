@@ -70,10 +70,12 @@ getOneUser = (req, res) => {
 
 //Let super admin delete a specific user (PROTECTED)
 deleteOneUser = (req, res) => {
-    console.log(req.authData)
     if(req.authData.isSuperAdmin){
         const uID = req.params.userId;
-        User.deleteOne({_id: uID}).then( result => {
+        User.findOneAndUpdate({_id: uID}, {
+            status: 'archived'
+        })
+        .then( result => {
             if(result.deletedCount > 0){
                 res.status(200).json({
                     message: "User deleted",
@@ -115,11 +117,25 @@ registerStaff = (req, res) => {
 
 //let Super Admin and the authorized staff accept instructors
 acceptInstructors = (req, res) => {
-
+     if(req.authData.isSuperAdmin){
+        const uID = req.params.userId;
+        User.findOneAndUpdate({_id: uID}, {
+            isInstructor: true
+        })
+        .then(() => res.status(200).json({message: 'Instructor status added successfully'}))
+        .catch(err => { res.status(500).json(err) })
+    }
 } 
 //let super admin suspend active staff
 suspendOneStaff = (req, res) => {
-
+    if(req.authData.isSuperAdmin){
+        const uID = req.params.userId;
+        User.findOneAndUpdate({_id: uID}, {
+            isSuspended: true
+        })
+        .then(() => res.status(200).json({message: 'User suspended successfully'}))
+        .catch(err => { res.status(500).json(err) })
+    }
 }
 
 module.exports = {

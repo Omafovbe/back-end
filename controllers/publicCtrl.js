@@ -5,7 +5,7 @@ const Course =  require('../models/courseDetailsModel');
 const CourseCategory =  require('../models/courseCategoryModel')
 
 showCourse = (req, res) => {
-	Course.find().select('title description coverPicture price outline instructors duration category regDate regTime _id').then(
+	Course.find({status: 'active'}).select('title description coverPicture price outline instructors duration category regDate regTime _id').then(
         docs => {
             const response = {
                 count: docs.length,
@@ -40,7 +40,7 @@ showCourse = (req, res) => {
 
 showCourseByCategory = (req, res) => {
 	const categoryID = req.params.categoryID;
-	Course.findById(categoryID).select('title description coverPicture price outline instructors duration category regDate regTime _id').then(
+	Course.find({status: 'active', category: categoryID}).select('title description coverPicture price outline instructors duration category regDate regTime _id').then(
         docs => {
             const response = {
                 count: docs.length,

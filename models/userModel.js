@@ -24,6 +24,8 @@ const userSchema = new Schema(
         isInstructor: {type: Boolean, default: false},
         isSuperAdmin: {type: Boolean, default: false},
         isStaffStatus: {type: String, default: 'inactive'},
+        isSuspended: {type: Boolean, default: false},
+        status: {type: String, lowercase: true, default: 'active'},
         staffLevelStatus: {type: mongoose.Schema.Types.ObjectId, default: null, ref: 'StaffLevel'},
         avatar: Object,
     },
