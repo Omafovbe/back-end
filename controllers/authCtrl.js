@@ -93,7 +93,7 @@ login = (req, res, next) => {
                     isLearner: user.isLearner,
                     isInstructor: user.isInstructor,
                     isSuperAdmin: user.isSuperAdmin,
-                    staffLevelStatus: user.staffLevelStatus
+                    staffLevelStatus: user.staffLevelStatus,
                     status: user.status,
                     isSuspended: user.isSuspended,
                 },

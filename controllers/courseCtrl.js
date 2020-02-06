@@ -119,6 +119,8 @@ suspendCourse = (req, res) => {
 	} else {
         res.status(500).json({
             message: "Permission denied!"
+        });
+    }
 }
 
 //Allow the cleared user to suspend an active course category if they wanted
@@ -133,10 +135,12 @@ suspendCourseCategory = (req, res) => {
 	} else {
         res.status(500).json({
             message: "Permission denied!"
+      	});
+    }
 }
 module.exports = {
 	createCourse,
 	createCourseCategory,
 	suspendCourse,
 	suspendCourseCategory
-}
+}	
