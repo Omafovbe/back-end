@@ -19,5 +19,11 @@ router.get('/getOneUser/:userId', checkAuth, SuperAdminController.getOneUser);
 //Handling deleting of user (PROTECTED)
 router.delete('/deleteuser/:userId', checkAuth, SuperAdminController.deleteOneUser);
 
+//handle accepance of instructors
+router.get('/acceptinstructor/:userId', checkAuth, SuperAdminController.acceptInstructors);
+
+//handle suspension of staff
+router.get('/suspendstaff/:userId', checkAuth, SuperAdminController.suspendOneStaff);
+
 //Export the module for use in other modules
 module.exports = router

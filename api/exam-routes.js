@@ -17,7 +17,7 @@ router.post('/new-question', checkAuth, ExamController.addExamQuestion)
 router.post('/update-question', checkAuth, ExamController.updateExamQuestion)
 
 //Delete a question
-router.post('/delete-question', checkAuth, ExamController.deleteExamQuestion)
+router.post('/delete-question/:courseId', checkAuth, ExamController.deleteExamQuestion)
 
 //Retrieve questions from the database
 router.get('/get-exam/:courseId', checkAuth, ExamController.getExamQuestions)

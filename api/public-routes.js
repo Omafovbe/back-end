@@ -11,7 +11,7 @@ const PublicController = require('../controllers/publicCtrl')
 router.get('/showCourse', PublicController.showCourse);
 
 //handle showing courses to the public by category
-router.get('/showCourseByCategory', PublicController.showCourseByCategory);
+router.get('/showCourseByCategory/:categoryID', PublicController.showCourseByCategory);
 
 //Export the module for use in other modules
 module.exports = router

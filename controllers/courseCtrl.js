@@ -126,7 +126,7 @@ suspendCourse = (req, res) => {
 //Allow the cleared user to suspend an active course category if they wanted
 suspendCourseCategory = (req, res) => {
 	if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer"){
-	        const cID = req.params.course_id;
+	        const cID = req.params.coursecat_id;
 	        CourseCategory.findOneAndUpdate({_id: cID}, {
 	            status: 'archived'
 	        })

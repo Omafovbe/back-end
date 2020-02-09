@@ -80,7 +80,7 @@ updateExamQuestion = (req, res) => {
 
 deleteExamQuestion = (req, res) => {
     if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer") {
-        const questionId = req.body.question_id
+        const questionId = req.params.question_id
 
         ExamQuestion.findOneAndUpdate({_id: questionId}, {
             status: 'archived'

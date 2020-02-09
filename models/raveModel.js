@@ -7,11 +7,10 @@ const Schema = mongoose.Schema
 // Construct the Rave Schema 
 const RaveSchema = new Schema(
     {
-	    fullnname: {type: String, required: true },
-	    email: { type: String, required: true },
 	    amount: { type: Number, required: true },
-	    reference: { type: String, required: true },
-	    paymentMadeBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Users' }
+	    payment_reference: { type: String, required: true },
+	    paymentMadeBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Users' },
+	    coursePaidFor: { type: mongoose.Schema.Types.ObjectId, ref: 'CourseDetail' },
     },
     { timestamps: true },
 )

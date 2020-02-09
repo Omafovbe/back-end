@@ -10,9 +10,7 @@ const RaveController = require('../controllers/raveCtrl')
 //Import check-auth middleware
 const checkAuth = require('../middleware/check-auth')
 
-router.get('/pay', RaveController.initializePayment);
-
-router.get('/verify', RaveController.verifyPayment);
+router.post('/verify/:txref/course/:course_id', checkAuth, RaveController.verifyPayment);
 
 //Export the module for use in other modules
 module.exports = router

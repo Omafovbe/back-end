@@ -12,12 +12,12 @@ const time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSecond
 // Construct the userSchema for how each document will look like in the database "Users" collection
 const userSchema = new Schema(
     {
-        firstname: {type: String, require: true},
-        lastname: {type: String, require: true},
-        age: {type: Number, require: true, min: 15},
-        username: {type: String, unique: true, required: true, lowercase: true},
-        email: {type: String, unique: true, required: true, lowercase: true, minlength: 5, maxlength: 255},
-        password: {type: String, require: true},
+        firstname: {type: String, required: true},
+        lastname: {type: String, required: true},
+        age: {type: Number, required: true, min: 15},
+        username: {type: String, unique: true, requiredd: true, lowercase: true},
+        email: {type: String, unique: true, requiredd: true, lowercase: true, minlength: 5, maxlength: 255},
+        password: {type: String, required: true},
         regDate: {type: String, default: date},
         regTime: {type: String, default:time},
         isLearner: {type: Boolean, default: true},

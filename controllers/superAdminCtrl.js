@@ -144,4 +144,5 @@ module.exports = {
 	deleteOneUser,
     registerStaff,
     acceptInstructors,
+    suspendOneStaff
 }

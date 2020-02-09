@@ -59,7 +59,8 @@ updateTestQuestion = (req, res) => {
     TestQuestion.findOneAndUpdate({_id: questionId},
         {
             question: req.body.question,
-                options: { optionA: req.body.optionA,
+                options: { 
+                    optionA: req.body.optionA,
                     optionB: req.body.optionB,
                     optionC: req.body.optionC,
                     optionD: req.body.optionD,            
@@ -80,7 +81,7 @@ updateTestQuestion = (req, res) => {
 
 deleteTestQuestion = (req, res) => {
     if(req.authData.isSuperAdmin || req.authData.staffLevelStatus == "education officer") {
-        const questionId = req.body.question_id
+        const questionId = req.params.question_id
 
         TestQuestion.findOneAndUpdate({_id: questionId}, {
             status: 'archived'
