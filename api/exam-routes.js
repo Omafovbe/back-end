@@ -16,8 +16,11 @@ router.post('/new-question', checkAuth, ExamController.addExamQuestion)
 //Update question
 router.post('/update-question', checkAuth, ExamController.updateExamQuestion)
 
-//Delete a question
-router.post('/delete-question', checkAuth, ExamController.deleteExamQuestion)
+//Archive a question
+router.post('/suspend-question/:courseId', checkAuth, ExamController.suspendExamQuestion)
+
+//Re-activate a question
+router.post('/activate-question/:courseId', checkAuth, ExamController.activateExamQuestion)
 
 //Retrieve questions from the database
 router.get('/get-exam/:courseId', checkAuth, ExamController.getExamQuestions)

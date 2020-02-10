@@ -1,4 +1,4 @@
-//Import bcrypt to hash password
+    //Import bcrypt to hash password
 const bcrypt = require('bcryptjs');
 
 //Importation
@@ -52,6 +52,7 @@ signup = (req, res) => {
             lastname: req.body.lastname,
             username: req.body.username,
             age: req.body.age,
+            date_of_birth: req.body.date_of_birth,
             email: req.body.email,
             password: hash,
         });
@@ -80,7 +81,7 @@ signup = (req, res) => {
 login = (req, res, next) => {
 	let email = req.body.email
     let pswd = req.body.password
-    User.findOne({ email: email }).then( user => { 
+    User.findOne({ email: email, status: 'active' }).then( user => { 
 
         if (user) {
             var compareHash = bcrypt.compareSync(pswd, user.password);
@@ -93,7 +94,9 @@ login = (req, res, next) => {
                     isLearner: user.isLearner,
                     isInstructor: user.isInstructor,
                     isSuperAdmin: user.isSuperAdmin,
-                    staffLevelStatus: user.staffLevelStatus
+                    staffLevelStatus: user.staffLevelStatus,
+                    status: user.status,
+                    isSuspended: user.isSuspended,
                 },
                     process.env.JWT_SECRET,
                     {
@@ -126,7 +129,7 @@ login = (req, res, next) => {
 //Handle displaying of data of a single user based on their id (PROTECTED)
 me = (req, res) => {
     const uID = req.authData._id;
-    User.findById(uID).select('firstname lastname username email age regDate regTime isLearner isInstructor isSuperAdmin staffLevelStatus _id').then(
+    User.findById(uID).select('firstname lastname username email age date_of_birth regDate regTime isLearner isInstructor isSuperAdmin isSuspended isStaffStatus staffLevelStatus status avatar.path _id').then(
         result => {
         res.status(200).json({
             result: result,
@@ -164,9 +167,9 @@ sendPasswordresetLink = (req, res) => {
                     //If token of that email/user found in house it take it out else it generate new one and save to 
                     //db for future use
                     if(inHouseToken){
-                        const token = inHouseToken.resetPasswordToken;
+                        var token = inHouseToken.resetPasswordToken;
                     }else{
-                         const token = jwt.sign(
+                         var token = jwt.sign(
                             {
                                 _id: user._id,
                             },
@@ -174,8 +177,7 @@ sendPasswordresetLink = (req, res) => {
                             {
                                 expiresIn: "1h"
                             }
-                        );
-
+                        )
                         const resetData = new PasswordReset({
                             email: userEmail,
                             resetPasswordToken: token,
@@ -184,25 +186,25 @@ sendPasswordresetLink = (req, res) => {
                     }
                     //After TOKEN is get from either end an email us send to the user to update password through 
                     //the link sent
-                    var smtpTransport = nodemailer.createTransport({
-                        host: MAIL_HOST,
-                        port: MAIL_PORT,
-                        secure: true,
-                        auth: {
-                            //allow less secured app settings must be selected for this gmail account
-                            user: process.env.MAIL_USERNAME,
-                            pass: process.env.MAIL_PASSWORD,
-                        }
-                    });
-                    var mailOptions = {
-                        to: user.email,
-                        from: process.env.MAIL_FROM_ADDRESS,
-                        subject: 'Account Password Reset',
-                        text: 'You are receiving this because there was a request to reset the password for your account.\n\n' +
-                          'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-                          'http://' + req.headers.host + '/reset/' + token + '\n\n' +
-                          'If you did not make a password reset request, please ignore this email. Thanks.\n'
-                    };
+                         var smtpTransport = nodemailer.createTransport({
+                            host: process.env.MAIL_HOST,
+                            port: process.env.MAIL_PORT,
+                            secure: false,
+                            auth: {
+                                //allow less secured app settings must be selected for this gmail account
+                                user: process.env.MAIL_USERNAME,
+                                pass: process.env.MAIL_PASSWORD,
+                            }
+                        });
+                        var mailOptions = {
+                            to: user.email,
+                            from: process.env.MAIL_FROM_ADDRESS,
+                            subject: 'Account Password Reset',
+                            html: '<p>You are receiving this because there was a request to reset the password for your account.<br>' +
+                              'Please click on the following link, or paste this into your browser to complete the process:<br>' +
+                              '<a style="text-decoration: none;" href="https://' + req.headers.host + '/reset/' + token +'">Reset Password</a><br>'+
+                              'If you did not make a password reset request, please ignore this email. Thanks.\n</p>'
+                        };
                     smtpTransport.sendMail(mailOptions, function(err) {
                         if(err){
                             return res.status(500).json({
@@ -216,10 +218,10 @@ sendPasswordresetLink = (req, res) => {
                     });
                 })
                 .catch(err => {
-                    // res.status(500).json({
-                    //     message: 'An error occured',
-                    //     error: err
-                    // })
+                    res.status(500).json({
+                        message: 'An error occured',
+                        error: err
+                    })
                 })
             }
         })

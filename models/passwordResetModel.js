@@ -7,8 +7,8 @@ const Schema = mongoose.Schema
 // Construct the userSchema for how each document will look like in the database "Users" collection
 const forgotSchema = new Schema(
     {
-        email:{type: String, require: true},
-        resetPasswordToken:{type: String, require: true},
+        email:{type: String, required: true},
+        resetPasswordToken:{type: String, required: true},
         resetPasswordExpires:{type: String, default: Date.now() + 900000} //expires in 15 minutes,
     },
     { timestamps: true },

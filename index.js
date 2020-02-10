@@ -33,6 +33,9 @@ const testRoutes = require('./api/test-routes')
 //Import the routes module for exam questions
 const examRoutes = require('./api/exam-routes')
 
+//Import the routes module for RAVE PAYMENT
+const raveRoutes = require('./api/rave-routes')
+
 //Set PORT to be connected to if not available in the .env default one will be used
 const apiPort = process.env.PORT || 4001	
 
@@ -74,6 +77,9 @@ app.use('/testquestions', testRoutes)
 
 //Set the routes for course according to their imported routes api
 app.use('/examquestions', examRoutes)
+
+//Set the routes for rave payment
+app.use('/payment', raveRoutes)
 
 //Start listening to the app port to handle request
 app.listen(apiPort, () => {

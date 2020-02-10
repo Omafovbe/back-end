@@ -10,6 +10,7 @@ const examQuestionSchema = new Schema(
         question: String,
         options: Object,
         answerKey: String,
+        status: {type: String, lowercase: true, default: 'active'},
         courseId: {type: mongoose.Schema.Types.ObjectId, ref: 'CourseDetail'},
         addedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'Users'}
     },

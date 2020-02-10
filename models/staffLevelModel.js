@@ -9,7 +9,7 @@ const staffLevelSchema = new Schema(
     {
         title: {type: String, unique: true},
         description: String,
-        status: {type: String, default: 'active'},
+        status: {type: String, lowercase: true, default: 'active'},
     },
     { timestamps: true },
 )

@@ -16,8 +16,11 @@ router.post('/new-question', checkAuth, TestController.addTestQuestion)
 //Update question
 router.post('/update-question', checkAuth, TestController.updateTestQuestion)
 
-//Delete a question
-router.post('/delete-question', checkAuth, TestController.deleteTestQuestion)
+//Archive a question
+router.post('/suspend-question/:courseId', checkAuth, TestController.suspendTestQuestion)
+
+//Re-activate a question
+router.post('/activate-question/:courseId', checkAuth, TestController.activateTestQuestion)
 
 //Retrieve questions from the database
 router.get('/get-test/:courseId', checkAuth, TestController.getTestQuestions)
