@@ -19,11 +19,17 @@ router.post('/createCourse', checkAuth, upload.single('coverpicture'), CourseCon
 //handle creation of course category by the Super Admin and Education officer alone 
 router.post('/createCourseCategory', checkAuth, CourseController.createCourseCategory);
 
-//handle suspention of courses
+//handle suspension of courses
 router.post('/suspendcourse/:course_id', checkAuth, CourseController.suspendCourse);
 
-//handle suspendion of course categories
+//handle re-activation of courses
+router.post('/activatecourse/:course_id', checkAuth, CourseController.activateCourse);
+
+//handle suspension of course categories
 router.post('/suspendcoursecategory/:coursecat_id', checkAuth, CourseController.suspendCourseCategory);
+
+//handle re-activation of course categories
+router.post('/activatecoursecategory/:coursecat_id', checkAuth, CourseController.activateCourseCategory);
 
 //Export the module for use in other modules
 module.exports = router

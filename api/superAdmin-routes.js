@@ -17,13 +17,22 @@ router.get('/allusers', checkAuth, SuperAdminController.getAllUsers);
 router.get('/getOneUser/:userId', checkAuth, SuperAdminController.getOneUser);
 
 //Handling deleting of user (PROTECTED)
-router.delete('/deleteuser/:userId', checkAuth, SuperAdminController.deleteOneUser);
+router.post('/deactivateuser/:userId', checkAuth, SuperAdminController.deactivateOneUser);suspendStaffLevel
 
 //handle accepance of instructors
 router.get('/acceptinstructor/:userId', checkAuth, SuperAdminController.acceptInstructors);
 
 //handle suspension of staff
 router.get('/suspendstaff/:userId', checkAuth, SuperAdminController.suspendOneStaff);
+
+//handle suspension of staff level
+router.get('/suspendstaff/:level_id', checkAuth, SuperAdminController.suspendStaffLevel);
+
+//handle re-activattion of staff level
+router.get('/activatestaff/:level_id', checkAuth, SuperAdminController.reactivateStaffLevel);
+
+//handle adding of more staff levels if any
+router.post('addstafflevel', checkAuth, SuperAdminController.addStaffLevel);
 
 //Export the module for use in other modules
 module.exports = router

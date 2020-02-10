@@ -4,6 +4,9 @@ const Course =  require('../models/courseDetailsModel');
 //Import users database schema
 const CourseCategory =  require('../models/courseCategoryModel')
 
+//Import staff level collection schema
+const StaffLevel =  require('../models/staffLevelModel')
+
 showCourse = (req, res) => {
 	Course.find({status: 'active'}).select('title description coverPicture price outline instructors duration category regDate regTime _id').then(
         docs => {
@@ -73,7 +76,45 @@ showCourseByCategory = (req, res) => {
         });
 }
 
+showCategory = (req, res) => {
+    CourseCategory.find({status: 'active'}).select('title description status regDate regTime _id').then(
+        docs => {
+            const response = {
+                count: docs.length,
+                data: docs.map(doc => {
+                    return {
+                        _id: doc._id,
+                        title: doc.title,
+                        description: doc.description,
+                        status: doc.status,
+                        regDate: doc.regDate,
+                        regTime: doc.regTime
+                    }
+                })
+            }
+        res.status(200).json(response)
+        })
+        .catch(error => {
+            res.status(500).json({
+                error,
+            })
+        });
+}
+
+showStaffLevel = (req, res) => {
+    StaffLevel.find({status: 'active'}).then( docs => {
+        res.status(200).json(docs)
+    })
+    .catch(error => {
+        res.status(500).json({
+            error,
+        })
+    });
+}
+
 module.exports = {
 	showCourse,
 	showCourseByCategory,
+    showCategory,
+    showStaffLevel,
 }
